@@ -4,7 +4,7 @@
 $TestLabAdminUser = "Administrator"
 $TestLabAdminPassword = "Pa55word"
 $TestLabDomain = "FBN.local"
-$TestLabName = "UWM"
+$TestLabName = "AutomatedLab_UWM"
 $TestLabSecUser = "FBN\Administrator"
 $TestLabSecPwd = "Pa55word"
 $TestLabVMPath = "C:\TestLabs\UWM"
@@ -16,6 +16,49 @@ $TestLabVMPath = "C:\TestLabs\UWM"
 #$TestLabDHCPScopeEnd = "192.168.12.60"
 #$TestLabDHCPScopeMask = "255.255.255.0"
 #$TestLabDHCPScopeDNSSRV = "192.168.12.3"
+
+#endregion
+
+#region AutomatedLab Actions
+#Copy ISO Files to C:\Labsources\ISOs
+Write-ScreenInfo -Message 'Copying required ISO Files to C:\LabSources\ISOs Folder'
+#hier variable einsetzen
+robocopy.exe "C:\LabSources\Labs\$TestLabName\ISO" 'C:\LabSources\ISOs'
+
+#Define TestLab
+New-LabDefinition -Name $TestLabName -DefaultVirtualizationEngine HyperV -VmPath $TestLabVMPath -ReferenceDiskSizeInGB 100
+
+#Define TestLab Settings
+Add-LabDomainDefinition -Name $TestLabDomain -AdminUser $TestLabAdminUser -AdminPassword $TestLabAdminPassword
+Add-LabVirtualNetworkDefinition -Name $TestLabName -AddressSpace $TestLabIPScope
+Set-LabInstallationCredential -Username $TestLabAdminUser -Password $TestLabAdminPassword
+
+#prepare lab computer names
+#$DC = $TestLabName + "DC01"
+#$SRV01 = $TestLabName + "FS01"
+#$PC01 = $TestLabName + "W10"
+#$PC02 = $TestLabName + "W701"
+$DC = "DC01"
+$SRV01 = "Server01"
+$PC01 = "TS01"
+$PC02 = "PC10"
+$PC03 = "PC11"
+
+#create DC
+Add-LabMachineDefinition -Name $DC -OperatingSystem 'Windows Server 2019 STANDARD (Desktop Experience)' -Roles RootDC -DomainName $TestLabDomain -TimeZone "W. Europe Standard Time"
+
+#create Memberserver
+Add-LabMachineDefinition -Name $SRV01 -OperatingSystem 'Windows Server 2019 STANDARD (Desktop Experience)' -DomainName $TestLabDomain -TimeZone "W. Europe Standard Time" -Memory 2GB -MinMemory 512MB -MaxMemory 8GB -Processors 4
+Add-LabMachineDefinition -Name $PC01 -OperatingSystem 'Windows Server 2019 STANDARD (Desktop Experience)' -DomainName $TestLabDomain -TimeZone "W. Europe Standard Time" -Memory 1GB -MinMemory 512MB -MaxMemory 2GB
+Add-LabMachineDefinition -Name $PC02 -OperatingSystem 'Windows 10 Enterprise' -DomainName $TestLabDomain -TimeZone "W. Europe Standard Time" -Memory 1GB -MinMemory 512MB -MaxMemory 2GB
+Add-LabMachineDefinition -Name $PC03 -OperatingSystem 'Windows 11 Enterprise' -DomainName $TestLabDomain -TimeZone "W. Europe Standard Time" -Memory 1GB -MinMemory 512MB -MaxMemory 2GB
+
+#Ensure Windows Defender does not slow down LAB build
+Write-ScreenInfo -Message 'Setting Windows Defender Exclusions'
+Set-MpPreference -ExclusionProcess dism.exe,code.exe,powershell.exe
+
+#start building lab
+Install-Lab
 
 #endregion
 
