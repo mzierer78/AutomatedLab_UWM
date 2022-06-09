@@ -1,3 +1,24 @@
+# Create Lab Environment for Ivanti Advantage Learning Course "User Workspace Management"
+#region Define Variables
+#Lab related Variables
+$TestLabAdminUser = "Administrator"
+$TestLabAdminPassword = "Pa55word"
+$TestLabDomain = "FBN.local"
+$TestLabName = "UWM"
+$TestLabSecUser = "FBN\Administrator"
+$TestLabSecPwd = "Pa55word"
+$TestLabVMPath = "C:\TestLabs\UWM"
+
+#Network related Variables
+#$TestLabIPScope = "192.168.12.0/24"
+#$TestLabDHCPScope = "192.168.12.0"
+#$TestLabDHCPScopeStart = "192.168.12.50"
+#$TestLabDHCPScopeEnd = "192.168.12.60"
+#$TestLabDHCPScopeMask = "255.255.255.0"
+#$TestLabDHCPScopeDNSSRV = "192.168.12.3"
+
+#endregion
+
 #Define TestLab
 New-LabDefinition -Name UWM -DefaultVirtualizationEngine HyperV -VmPath C:\TestLabs\UWM
 
