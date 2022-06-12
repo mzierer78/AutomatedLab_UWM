@@ -206,24 +206,7 @@ Remove-Variable -Name User
 
 
 #Install software
-Install-LabSoftwarePackage -ComputerName DC01 -Path $labSources\SoftwarePackages\FirefoxSetup78.4.1esr.msi -CommandLine /qn
-
-#Create Shared Printers
-Invoke-LabCommand -ActivityName "Add Printer Driver" -ComputerName DC01 -ScriptBlock {
-    Add-PrinterDriver -Name "Generic / Text Only"
-} -Credential $creds
-
-Invoke-LabCommand -ActivityName "Add Printer FinancePrinter1" -ComputerName DC01 -ScriptBlock {
-    Add-Printer -Name "FinancePrinter1" -DriverName "Generic / Text Only" -PortName "FILE:" -Shared
-} -Credential $creds
-
-Invoke-LabCommand -ActivityName "Add Printer FinancePrinter2" -ComputerName DC01 -ScriptBlock {
-    Add-Printer -Name "FinancePrinter2" -DriverName "Generic / Text Only" -PortName "FILE:" -Shared
-} -Credential $creds
-
-Invoke-LabCommand -ActivityName "Add Printer HRPrinter1" -ComputerName DC01 -ScriptBlock {
-    Add-Printer -Name "HRPrinter1" -DriverName "Generic / Text Only" -PortName "FILE:" -Shared
-} -Credential $creds
+Install-LabSoftwarePackage -ComputerName $DC -Path $labSources\SoftwarePackages\MicrosoftEdgeEnterpriseX64.msi -CommandLine /qn
 
 #endregion
 
