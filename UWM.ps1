@@ -4,7 +4,7 @@
 $TestLabAdminUser = "Administrator"
 $TestLabAdminPassword = "Pa55word"
 $TestLabDomain = "FBN.local"
-$TestLabName = "AutomatedLab_UWM"
+$TestLabName = "UWM"
 $TestLabSecUser = "FBN\Administrator"
 $TestLabSecPwd = "Pa55word"
 $TestLabVMPath = "C:\TestLabs\UWM"
@@ -62,6 +62,173 @@ Install-Lab
 
 #endregion
 
+#region Actions for Domain Controller
+Write-ScreenInfo -Message "Starting Actions for $DC"
+#Prepare AD Credentials
+$secpasswd = ConvertTo-SecureString $TestLabSecPwd -AsPlainText -Force
+$secuser = $TestLabSecUser
+$creds = New-Object System.Management.Automation.PSCredential ($secuser, $secpasswd)
+
+#Create AD OU's
+Write-ScreenInfo -Message "start creating OU's"
+$TestLabName = 'Test'
+$TestLabDomainName = 'FBN'
+Invoke-LabCommand -ActivityName "Add OU $TestLabName" -ComputerName $DC -ScriptBlock {
+    New-ADOrganizationalUnit -Name "$TestLabName" -Path "DC=$TestLabDomainName,DC=LOCAL" -ProtectedFromAccidentalDeletion $False
+} -Credential $creds -Variable (Get-Variable -Name TestLabName),(Get-Variable -Name TestLabDomainName)
+
+$TestLabOUName = 'Accounts'
+Invoke-LabCommand -ActivityName "Add OU $TestLabOUName" -ComputerName $DC -ScriptBlock {
+    New-ADOrganizationalUnit -Name $TestLabOUName -Path "OU=$TestLabName,DC=$TestLabDomainName,DC=LOCAL" -ProtectedFromAccidentalDeletion $False
+} -Credential $creds -Variable (Get-Variable -Name TestLabOUName),(Get-Variable -Name TestLabName),(Get-Variable -Name TestLabDomainName)
+Remove-Variable -Name TestLabOUName
+
+$TestLabOUName = 'Finance'
+Invoke-LabCommand -ActivityName "Add OU $TestLabOUName" -ComputerName $DC -ScriptBlock {
+    New-ADOrganizationalUnit -Name $TestLabOUName -Path "OU=$TestLabName,DC=$TestLabDomainName,DC=LOCAL" -ProtectedFromAccidentalDeletion $False
+} -Credential $creds -Variable (Get-Variable -Name TestLabOUName),(Get-Variable -Name TestLabName),(Get-Variable -Name TestLabDomainName)
+Remove-Variable -Name TestLabOUName
+
+$TestLabOUName = 'HR'
+Invoke-LabCommand -ActivityName "Add OU $TestLabOUName" -ComputerName $DC -ScriptBlock {
+    New-ADOrganizationalUnit -Name $TestLabOUName -Path "OU=$TestLabName,DC=$TestLabDomainName,DC=LOCAL" -ProtectedFromAccidentalDeletion $False
+} -Credential $creds -Variable (Get-Variable -Name TestLabOUName),(Get-Variable -Name TestLabName),(Get-Variable -Name TestLabDomainName)
+Remove-Variable -Name TestLabOUName
+
+$TestLabOUName = 'Windows 10'
+Invoke-LabCommand -ActivityName "Add OU $TestLabOUName" -ComputerName $DC -ScriptBlock {
+    New-ADOrganizationalUnit -Name $TestLabOUName -Path "OU=$TestLabName,DC=$TestLabDomainName,DC=LOCAL" -ProtectedFromAccidentalDeletion $False
+} -Credential $creds -Variable (Get-Variable -Name TestLabOUName),(Get-Variable -Name TestLabName),(Get-Variable -Name TestLabDomainName)
+Remove-Variable -Name TestLabOUName
+
+$TestLabOUName = 'Windows 11'
+Invoke-LabCommand -ActivityName "Add OU $TestLabOUName" -ComputerName $DC -ScriptBlock {
+    New-ADOrganizationalUnit -Name $TestLabOUName -Path "OU=$TestLabName,DC=$TestLabDomainName,DC=LOCAL" -ProtectedFromAccidentalDeletion $False
+} -Credential $creds -Variable (Get-Variable -Name TestLabOUName),(Get-Variable -Name TestLabName),(Get-Variable -Name TestLabDomainName)
+Remove-Variable -Name TestLabOUName
+
+$TestLabOUName = 'TS'
+Invoke-LabCommand -ActivityName "Add OU $TestLabOUName" -ComputerName $DC -ScriptBlock {
+    New-ADOrganizationalUnit -Name $TestLabOUName -Path "OU=$TestLabName,DC=$TestLabDomainName,DC=LOCAL" -ProtectedFromAccidentalDeletion $False
+} -Credential $creds -Variable (Get-Variable -Name TestLabOUName),(Get-Variable -Name TestLabName),(Get-Variable -Name TestLabDomainName)
+Remove-Variable -Name TestLabOUName
+
+Write-ScreenInfo -Message "creating OU's finished"
+
+#Move Computers to OU's
+Write-Screeninfo -Message "start moving Computers"
+
+$Identity = 'CN=PC01,CN=Computers,$TestLabDomainName,DC=local'
+$TargetPath = 'OU=TS,OU=$TestLabName,$TestLabDomainName,DC=local'
+Invoke-LabCommand -ActivityName "Move $Identity to $TargetPath" -ComputerName $DC -ScriptBlock {
+    Move-ADObject -Identity $Identity -TargetPath $TargetPath
+} -Credential $creds -Variable (Get-Variable -Name Identity),(Get-Variable -Name TargetPath)
+Remove-Variable -Name Identity
+Remove-Variable -Name TargetPath
+
+$Identity = 'CN=PC02,CN=Computers,$TestLabDomainName,DC=local'
+$TargetPath = 'OU=Windows 10,OU=$TestLabName,$TestLabDomainName,DC=local'
+Invoke-LabCommand -ActivityName "Move $Identity to $TargetPath" -ComputerName $DC -ScriptBlock {
+    Move-ADObject -Identity $Identity -TargetPath $TargetPath
+} -Credential $creds -Variable (Get-Variable -Name Identity),(Get-Variable -Name TargetPath)
+Remove-Variable -Name Identity
+Remove-Variable -Name TargetPath
+
+$Identity = 'CN=PC03,CN=Computers,$TestLabDomainName,DC=local'
+$TargetPath = 'OU=Windows 11,OU=$TestLabName,$TestLabDomainName,DC=local'
+Invoke-LabCommand -ActivityName "Move $Identity to $TargetPath" -ComputerName $DC -ScriptBlock {
+    Move-ADObject -Identity $Identity -TargetPath $TargetPath
+} -Credential $creds -Variable (Get-Variable -Name Identity),(Get-Variable -Name TargetPath)
+Remove-Variable -Name Identity
+Remove-Variable -Name TargetPath
+
+Write-ScreenInfo -Message "end moving computers"
+
+#create additional users
+Write-ScreenInfo -Message "start creating Users"
+
+$Pwd = 'Pa55word'
+$User = 'SQL-Creator'
+Invoke-LabCommand -ActivityName "CreateUser $User" -ComputerName $DC -ScriptBlock {
+    Import-Module ActiveDirectory
+    $secpwd = ConvertTo-SecureString $Pwd -AsPlainText -Force
+    New-ADUser -Name $User -AccountPassword $secpwd -Enabled $true -ChangePasswordAtLogon $false
+} -Credential $creds -Variable (Get-Variable -Name User),(Get-Variable -Name Pwd)
+Remove-Variable -Name User
+
+$User = 'SQL-Acct'
+Invoke-LabCommand -ActivityName "CreateUser $User" -ComputerName $DC -ScriptBlock {
+    Import-Module ActiveDirectory
+    $secpwd = ConvertTo-SecureString $Pwd -AsPlainText -Force
+    New-ADUser -Name $User -AccountPassword $secpwd -Enabled $true -ChangePasswordAtLogon $false
+} -Credential $creds -Variable (Get-Variable -Name User),(Get-Variable -Name Pwd)
+Remove-Variable -Name User
+
+$User = 'Support1'
+Invoke-LabCommand -ActivityName "CreateUser $User" -ComputerName $DC -ScriptBlock {
+    Import-Module ActiveDirectory
+    $secpwd = ConvertTo-SecureString $Pwd -AsPlainText -Force
+    New-ADUser -Name $User -AccountPassword $secpwd -Enabled $true -ChangePasswordAtLogon $false
+} -Credential $creds -Variable (Get-Variable -Name User),(Get-Variable -Name Pwd)
+Remove-Variable -Name User
+
+$User = 'Support2'
+Invoke-LabCommand -ActivityName "CreateUser $User" -ComputerName $DC -ScriptBlock {
+    Import-Module ActiveDirectory
+    $secpwd = ConvertTo-SecureString $Pwd -AsPlainText -Force
+    New-ADUser -Name $User -AccountPassword $secpwd -Enabled $true -ChangePasswordAtLogon $false
+} -Credential $creds -Variable (Get-Variable -Name User),(Get-Variable -Name Pwd)
+Remove-Variable -Name User
+
+$User = 'JTester'
+Invoke-LabCommand -ActivityName "CreateUser $User" -ComputerName $DC -ScriptBlock {
+    Import-Module ActiveDirectory
+    $secpwd = ConvertTo-SecureString $Pwd -AsPlainText -Force
+    New-ADUser -Name $User -AccountPassword $secpwd -Enabled $true -ChangePasswordAtLogon $false
+} -Credential $creds -Variable (Get-Variable -Name User),(Get-Variable -Name Pwd)
+Remove-Variable -Name User
+
+$User = 'Finance1'
+Invoke-LabCommand -ActivityName "CreateUser $User" -ComputerName $DC -ScriptBlock {
+    Import-Module ActiveDirectory
+    $secpwd = ConvertTo-SecureString $Pwd -AsPlainText -Force
+    New-ADUser -Name $User -AccountPassword $secpwd -Enabled $true -ChangePasswordAtLogon $false
+} -Credential $creds -Variable (Get-Variable -Name User),(Get-Variable -Name Pwd)
+Remove-Variable -Name User
+
+$User = 'HR-1'
+Invoke-LabCommand -ActivityName "CreateUser $User" -ComputerName $DC -ScriptBlock {
+    Import-Module ActiveDirectory
+    $secpwd = ConvertTo-SecureString $Pwd -AsPlainText -Force
+    New-ADUser -Name $User -AccountPassword $secpwd -Enabled $true -ChangePasswordAtLogon $false
+} -Credential $creds -Variable (Get-Variable -Name User),(Get-Variable -Name Pwd)
+Remove-Variable -Name User
+
+
+#Install software
+Install-LabSoftwarePackage -ComputerName DC01 -Path $labSources\SoftwarePackages\FirefoxSetup78.4.1esr.msi -CommandLine /qn
+
+#Create Shared Printers
+Invoke-LabCommand -ActivityName "Add Printer Driver" -ComputerName DC01 -ScriptBlock {
+    Add-PrinterDriver -Name "Generic / Text Only"
+} -Credential $creds
+
+Invoke-LabCommand -ActivityName "Add Printer FinancePrinter1" -ComputerName DC01 -ScriptBlock {
+    Add-Printer -Name "FinancePrinter1" -DriverName "Generic / Text Only" -PortName "FILE:" -Shared
+} -Credential $creds
+
+Invoke-LabCommand -ActivityName "Add Printer FinancePrinter2" -ComputerName DC01 -ScriptBlock {
+    Add-Printer -Name "FinancePrinter2" -DriverName "Generic / Text Only" -PortName "FILE:" -Shared
+} -Credential $creds
+
+Invoke-LabCommand -ActivityName "Add Printer HRPrinter1" -ComputerName DC01 -ScriptBlock {
+    Add-Printer -Name "HRPrinter1" -DriverName "Generic / Text Only" -PortName "FILE:" -Shared
+} -Credential $creds
+
+#endregion
+
+
+#Do Not use Lines below!!!
 #Define TestLab
 New-LabDefinition -Name UWM -DefaultVirtualizationEngine HyperV -VmPath C:\TestLabs\UWM
 
