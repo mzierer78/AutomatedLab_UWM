@@ -50,3 +50,13 @@ Invoke-LabCommand -ActivityName "Move $Identity to $TargetPath" -ComputerName $D
 } -Credential $creds -Variable (Get-Variable -Name Identity),(Get-Variable -Name TargetPath)
 Remove-Variable -Name Identity
 Remove-Variable -Name TargetPath
+
+#create additional users
+$User = 'SQL-Creator'
+$Pwd = 'Pa55word'
+Invoke-LabCommand -ActivityName "CreateUser $User" -ComputerName $DC -ScriptBlock {
+    Import-Module ActiveDirectory
+    $secpwd = ConvertTo-SecureString $Pwd -AsPlainText -Force
+    New-ADUser -Name $User -AccountPassword $secpwd -Enabled $true -ChangePasswordAtLogon $false
+} -Credential $creds -Variable (Get-Variable -Name User),(Get-Variable -Name Pwd)
+Remove-Variable -Name User

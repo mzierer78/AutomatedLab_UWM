@@ -70,6 +70,7 @@ $secuser = $TestLabSecUser
 $creds = New-Object System.Management.Automation.PSCredential ($secuser, $secpasswd)
 
 #Create AD OU's
+Write-ScreenInfo -Message "start creating OU's"
 $TestLabName = 'Test'
 $TestLabDomainName = 'FBN'
 Invoke-LabCommand -ActivityName "Add OU $TestLabName" -ComputerName $DC -ScriptBlock {
@@ -112,7 +113,11 @@ Invoke-LabCommand -ActivityName "Add OU $TestLabOUName" -ComputerName $DC -Scrip
 } -Credential $creds -Variable (Get-Variable -Name TestLabOUName),(Get-Variable -Name TestLabName),(Get-Variable -Name TestLabDomainName)
 Remove-Variable -Name TestLabOUName
 
+Write-ScreenInfo -Message "creating OU's finished"
+
 #Move Computers to OU's
+Write-Screeninfo -Message "start moving Computers"
+
 $Identity = 'CN=PC01,CN=Computers,$TestLabDomainName,DC=local'
 $TargetPath = 'OU=TS,OU=$TestLabName,$TestLabDomainName,DC=local'
 Invoke-LabCommand -ActivityName "Move $Identity to $TargetPath" -ComputerName $DC -ScriptBlock {
@@ -137,6 +142,69 @@ Invoke-LabCommand -ActivityName "Move $Identity to $TargetPath" -ComputerName $D
 Remove-Variable -Name Identity
 Remove-Variable -Name TargetPath
 
+Write-ScreenInfo -Message "end moving computers"
+
+#create additional users
+Write-ScreenInfo -Message "start creating Users"
+
+$Pwd = 'Pa55word'
+$User = 'SQL-Creator'
+Invoke-LabCommand -ActivityName "CreateUser $User" -ComputerName $DC -ScriptBlock {
+    Import-Module ActiveDirectory
+    $secpwd = ConvertTo-SecureString $Pwd -AsPlainText -Force
+    New-ADUser -Name $User -AccountPassword $secpwd -Enabled $true -ChangePasswordAtLogon $false
+} -Credential $creds -Variable (Get-Variable -Name User),(Get-Variable -Name Pwd)
+Remove-Variable -Name User
+
+$User = 'SQL-Acct'
+Invoke-LabCommand -ActivityName "CreateUser $User" -ComputerName $DC -ScriptBlock {
+    Import-Module ActiveDirectory
+    $secpwd = ConvertTo-SecureString $Pwd -AsPlainText -Force
+    New-ADUser -Name $User -AccountPassword $secpwd -Enabled $true -ChangePasswordAtLogon $false
+} -Credential $creds -Variable (Get-Variable -Name User),(Get-Variable -Name Pwd)
+Remove-Variable -Name User
+
+$User = 'Support1'
+Invoke-LabCommand -ActivityName "CreateUser $User" -ComputerName $DC -ScriptBlock {
+    Import-Module ActiveDirectory
+    $secpwd = ConvertTo-SecureString $Pwd -AsPlainText -Force
+    New-ADUser -Name $User -AccountPassword $secpwd -Enabled $true -ChangePasswordAtLogon $false
+} -Credential $creds -Variable (Get-Variable -Name User),(Get-Variable -Name Pwd)
+Remove-Variable -Name User
+
+$User = 'Support2'
+Invoke-LabCommand -ActivityName "CreateUser $User" -ComputerName $DC -ScriptBlock {
+    Import-Module ActiveDirectory
+    $secpwd = ConvertTo-SecureString $Pwd -AsPlainText -Force
+    New-ADUser -Name $User -AccountPassword $secpwd -Enabled $true -ChangePasswordAtLogon $false
+} -Credential $creds -Variable (Get-Variable -Name User),(Get-Variable -Name Pwd)
+Remove-Variable -Name User
+
+$User = 'JTester'
+Invoke-LabCommand -ActivityName "CreateUser $User" -ComputerName $DC -ScriptBlock {
+    Import-Module ActiveDirectory
+    $secpwd = ConvertTo-SecureString $Pwd -AsPlainText -Force
+    New-ADUser -Name $User -AccountPassword $secpwd -Enabled $true -ChangePasswordAtLogon $false
+} -Credential $creds -Variable (Get-Variable -Name User),(Get-Variable -Name Pwd)
+Remove-Variable -Name User
+
+$User = 'Finance1'
+Invoke-LabCommand -ActivityName "CreateUser $User" -ComputerName $DC -ScriptBlock {
+    Import-Module ActiveDirectory
+    $secpwd = ConvertTo-SecureString $Pwd -AsPlainText -Force
+    New-ADUser -Name $User -AccountPassword $secpwd -Enabled $true -ChangePasswordAtLogon $false
+} -Credential $creds -Variable (Get-Variable -Name User),(Get-Variable -Name Pwd)
+Remove-Variable -Name User
+
+$User = 'HR-1'
+Invoke-LabCommand -ActivityName "CreateUser $User" -ComputerName $DC -ScriptBlock {
+    Import-Module ActiveDirectory
+    $secpwd = ConvertTo-SecureString $Pwd -AsPlainText -Force
+    New-ADUser -Name $User -AccountPassword $secpwd -Enabled $true -ChangePasswordAtLogon $false
+} -Credential $creds -Variable (Get-Variable -Name User),(Get-Variable -Name Pwd)
+Remove-Variable -Name User
+
+
 #Install software
 Install-LabSoftwarePackage -ComputerName DC01 -Path $labSources\SoftwarePackages\FirefoxSetup78.4.1esr.msi -CommandLine /qn
 
@@ -157,65 +225,6 @@ Invoke-LabCommand -ActivityName "Add Printer HRPrinter1" -ComputerName DC01 -Scr
     Add-Printer -Name "HRPrinter1" -DriverName "Generic / Text Only" -PortName "FILE:" -Shared
 } -Credential $creds
 
-#create additional users
-Invoke-LabCommand -ActivityName "CreateUser SQL-Creator" -ComputerName DC01 -ScriptBlock {
-    Import-Module ActiveDirectory
-    $secpwd = ConvertTo-SecureString "Pa55word" -AsPlainText -Force
-    New-ADUser -Name SQL-Creator -AccountPassword $secpwd -Enabled $true -ChangePasswordAtLogon $false
-} -Credential $creds
-
-Invoke-LabCommand -ActivityName "CreateUser SQL-Acct" -ComputerName DC01 -ScriptBlock {
-    Import-Module ActiveDirectory
-    $secpwd = ConvertTo-SecureString "Pa55word" -AsPlainText -Force
-    New-ADUser -Name SQL-Acct -AccountPassword $secpwd -Enabled $true -ChangePasswordAtLogon $false
-} -Credential $creds
-
-Invoke-LabCommand -ActivityName "CreateUser Support1" -ComputerName DC01 -ScriptBlock {
-    Import-Module ActiveDirectory
-    $secpwd = ConvertTo-SecureString "Pa55word" -AsPlainText -Force
-    New-ADUser -Name Support1 -AccountPassword $secpwd -Enabled $true -ChangePasswordAtLogon $false
-} -Credential $creds
-
-Invoke-LabCommand -ActivityName "CreateUser Support2" -ComputerName DC01 -ScriptBlock {
-    Import-Module ActiveDirectory
-    $secpwd = ConvertTo-SecureString "Pa55word" -AsPlainText -Force
-    New-ADUser -Name Support2 -AccountPassword $secpwd -Enabled $true -ChangePasswordAtLogon $false
-} -Credential $creds
-
-Invoke-LabCommand -ActivityName "CreateUser JTester" -ComputerName DC01 -ScriptBlock {
-    Import-Module ActiveDirectory
-    $secpwd = ConvertTo-SecureString "Pa55word" -AsPlainText -Force
-    New-ADUser -Name JTester -AccountPassword $secpwd -Enabled $true -ChangePasswordAtLogon $false
-} -Credential $creds
-
-Invoke-LabCommand -ActivityName "CreateUser Finance1" -ComputerName DC01 -ScriptBlock {
-    Import-Module ActiveDirectory
-    $secpwd = ConvertTo-SecureString "Pa55word" -AsPlainText -Force
-    New-ADUser -Name Finance1 -AccountPassword $secpwd -Enabled $true -ChangePasswordAtLogon $false
-} -Credential $creds
-
-Invoke-LabCommand -ActivityName "CreateUser HR1" -ComputerName DC01 -ScriptBlock {
-    Import-Module ActiveDirectory
-    $secpwd = ConvertTo-SecureString "Pa55word" -AsPlainText -Force
-    New-ADUser -Name HR1 -AccountPassword $secpwd -Enabled $true -ChangePasswordAtLogon $false
-} -Credential $creds
-
-#Create AD Groups
-Invoke-LabCommand -ActivityName "Create Group Finance" -ComputerName DC01 -ScriptBlock {
-    New-ADObject -Name "Finance" -Type Group -Path "OU=Finance,OU=Accounts,OU=Test,DC=FBN,DC=LOCAL"
-} -Credential $creds
-
-Invoke-LabCommand -ActivityName "Add Members to Group Finance" -ComputerName DC01 -ScriptBlock {
-    Add-ADGroupMember -Identity "CN=Finance,OU=Finance,OU=Accounts,OU=Test,DC=FBN,DC=LOCAL" -Members Finance1
-} -Credential $creds
-
-Invoke-LabCommand -ActivityName "Create Group HR" -ComputerName DC01 -ScriptBlock {
-    New-ADObject -Name "HR" -Type Group -Path "OU=HR,OU=Accounts,OU=Test,DC=FBN,DC=LOCAL"
-} -Credential $creds
-
-Invoke-LabCommand -ActivityName "Add Members to Group HR" -ComputerName DC01 -ScriptBlock {
-    Add-ADGroupMember -Identity "CN=HR,OU=HR,OU=Accounts,OU=Test,DC=FBN,DC=LOCAL" -Members HR1
-} -Credential $creds
 #endregion
 
 
