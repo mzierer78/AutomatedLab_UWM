@@ -55,7 +55,7 @@ Add-LabMachineDefinition -Name $PC03 -OperatingSystem 'Windows 11 Enterprise' -D
 
 #Ensure Windows Defender does not slow down LAB build
 Write-ScreenInfo -Message 'Setting Windows Defender Exclusions'
-Set-MpPreference -ExclusionProcess dism.exe,code.exe,powershell.exe
+Set-MpPreference -ExclusionProcess dism.exe,code.exe,powershell.exe,powershell_ise.exe
 
 #start building lab
 Install-Lab
@@ -196,7 +196,7 @@ Invoke-LabCommand -ActivityName "CreateUser $User" -ComputerName $DC -ScriptBloc
 } -Credential $creds -Variable (Get-Variable -Name User),(Get-Variable -Name Pwd)
 Remove-Variable -Name User
 
-$User = 'HR-1'
+$User = 'HR1'
 Invoke-LabCommand -ActivityName "CreateUser $User" -ComputerName $DC -ScriptBlock {
     Import-Module ActiveDirectory
     $secpwd = ConvertTo-SecureString $Pwd -AsPlainText -Force
@@ -206,7 +206,8 @@ Remove-Variable -Name User
 
 
 #Install software
-Install-LabSoftwarePackage -ComputerName $DC -Path $labSources\SoftwarePackages\MicrosoftEdgeEnterpriseX64.msi -CommandLine /qn
+Install-LabSoftwarePackage -ComputerName $DC -Path $labSources\Labs\UWM\SoftwarePackages\MicrosoftEdgeEnterpriseX64.msi -CommandLine /qn
+#Install-LabSoftwarePackage -ComputerName $DC -Path $labSources\SoftwarePackages\MicrosoftEdgeEnterpriseX64.msi -CommandLine /qn
 
 #endregion
 
@@ -467,6 +468,6 @@ Disable-LabAutoLogon -ComputerName DC01,SERVER01,TS01,PC01,PC10
 Restart-LabVM -ComputerName DC01,SERVER01,TS01,PC01,PC10
 
 Write-ScreenInfo -Message 'Removing Windows Defender Exclusions'
-Remove-MpPreference -ExclusionProcess code.exe,powershell.exe
+Remove-MpPreference -ExclusionProcess code.exe,powershell.exe,powershell_ise.exe
 
 Show-LabDeploymentSummary 
