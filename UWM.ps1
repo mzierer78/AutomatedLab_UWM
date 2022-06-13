@@ -118,24 +118,24 @@ Write-ScreenInfo -Message "creating OU's finished"
 #Move Computers to OU's
 Write-Screeninfo -Message "start moving Computers"
 
-$Identity = 'CN=PC01,CN=Computers,$TestLabDomainName,DC=local'
-$TargetPath = 'OU=TS,OU=$TestLabName,$TestLabDomainName,DC=local'
+$Identity = "CN=$PC01,CN=Computers,$TestLabDomainName,DC=local"
+$TargetPath = "OU=TS,OU=$TestLabName,$TestLabDomainName,DC=local"
 Invoke-LabCommand -ActivityName "Move $Identity to $TargetPath" -ComputerName $DC -ScriptBlock {
     Move-ADObject -Identity $Identity -TargetPath $TargetPath
 } -Credential $creds -Variable (Get-Variable -Name Identity),(Get-Variable -Name TargetPath)
 Remove-Variable -Name Identity
 Remove-Variable -Name TargetPath
 
-$Identity = 'CN=PC02,CN=Computers,$TestLabDomainName,DC=local'
-$TargetPath = 'OU=Windows 10,OU=$TestLabName,$TestLabDomainName,DC=local'
+$Identity = "CN=$PC02,CN=Computers,$TestLabDomainName,DC=local"
+$TargetPath = "OU=Windows 10,OU=$TestLabName,$TestLabDomainName,DC=local"
 Invoke-LabCommand -ActivityName "Move $Identity to $TargetPath" -ComputerName $DC -ScriptBlock {
     Move-ADObject -Identity $Identity -TargetPath $TargetPath
 } -Credential $creds -Variable (Get-Variable -Name Identity),(Get-Variable -Name TargetPath)
 Remove-Variable -Name Identity
 Remove-Variable -Name TargetPath
 
-$Identity = 'CN=PC03,CN=Computers,$TestLabDomainName,DC=local'
-$TargetPath = 'OU=Windows 11,OU=$TestLabName,$TestLabDomainName,DC=local'
+$Identity = "CN=$PC03,CN=Computers,$TestLabDomainName,DC=local"
+$TargetPath = "OU=Windows 11,OU=$TestLabName,$TestLabDomainName,DC=local"
 Invoke-LabCommand -ActivityName "Move $Identity to $TargetPath" -ComputerName $DC -ScriptBlock {
     Move-ADObject -Identity $Identity -TargetPath $TargetPath
 } -Credential $creds -Variable (Get-Variable -Name Identity),(Get-Variable -Name TargetPath)
