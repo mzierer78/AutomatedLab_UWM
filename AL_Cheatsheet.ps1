@@ -18,6 +18,7 @@ $TestLabVMPath = "C:\TestLabs\UWM"
 
 #endregion
 
+#region AutomatedLab Actions
 #Copy ISO Files to C:\Labsources\ISOs
 Write-ScreenInfo -Message 'Copying required ISO Files to C:\LabSources\ISOs Folder'
 #hier variable einsetzen
@@ -27,6 +28,9 @@ robocopy.exe "C:\LabSources\Labs\$TestLabName\ISO" 'C:\LabSources\ISOs'
 Write-ScreenInfo -Message 'Setting Windows Defender Exclusions'
 Set-MpPreference -ExclusionProcess dism.exe,code.exe,powershell.exe
 
+#endregion
+
+#region Domain Controller Actions
 #Create AD OU's
 $TestLabName = 'Test'
 $TestLabDomainName = 'FBN'
@@ -60,3 +64,26 @@ Invoke-LabCommand -ActivityName "CreateUser $User" -ComputerName $DC -ScriptBloc
     New-ADUser -Name $User -AccountPassword $secpwd -Enabled $true -ChangePasswordAtLogon $false
 } -Credential $creds -Variable (Get-Variable -Name User),(Get-Variable -Name Pwd)
 Remove-Variable -Name User
+
+#endregion
+
+#region Member Actions
+
+#Populate local Administrators
+$Member = "FBN\SQL-Creator"
+Invoke-LabCommand -ActivityName "Add $Member to Administrators" -ComputerName $SRV01 -ScriptBlock {
+    Add-LocalGroupMember -Group "Administrators" -Member $Member
+} -Credential $creds -Variable (Get-Variable -Name Member)
+Remove-Variable -Name Member
+
+#Create additional Folders
+$FolderName = "Home"
+$FolderPath = "C:\"
+Invoke-LabCommand -ActivityName "CreateFolder $FolderName" -ComputerName $SRV01 -ScriptBlock {
+    New-Item -Path $FolderPath -Name $FolderName -ItemType Directory
+} -Credential $creds -Variable (Get-Variable -Name FolderPath),(Get-Variable -Name FolderName)
+Remove-Variable -Name FolderName
+Remove-Variable -Name FolderPath
+
+
+#endregion

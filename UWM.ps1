@@ -62,7 +62,7 @@ Install-Lab
 
 #endregion
 
-#region Actions for Domain Controller
+#region Actions for Domain Controller ($DC)
 Write-ScreenInfo -Message "Starting Actions for $DC"
 #Prepare AD Credentials
 $secpasswd = ConvertTo-SecureString $TestLabSecPwd -AsPlainText -Force
@@ -207,13 +207,67 @@ Remove-Variable -Name User
 
 #Install software
 Install-LabSoftwarePackage -ComputerName $DC -Path $labSources\Labs\UWM\SoftwarePackages\MicrosoftEdgeEnterpriseX64.msi -CommandLine /qn
-#Install-LabSoftwarePackage -ComputerName $DC -Path $labSources\SoftwarePackages\MicrosoftEdgeEnterpriseX64.msi -CommandLine /qn
 
 #endregion
 
+#region Actions for SERVER ($SRV01)
+Write-ScreenInfo -Message "start Actions for $SRV01"
+
+#Install software
+Install-LabSoftwarePackage -ComputerName $DC -Path $labSources\Labs\UWM\SoftwarePackages\MicrosoftEdgeEnterpriseX64.msi -CommandLine /qn
+
+#Populate local Administrators
+$Member = "FBN\SQL-Creator"
+Invoke-LabCommand -ActivityName "Add $Member to Administrators" -ComputerName $SRV01 -ScriptBlock {
+    Add-LocalGroupMember -Group "Administrators" -Member $Member
+} -Credential $creds -Variable (Get-Variable -Name Member)
+Remove-Variable -Name Member
+
+#Create additional Folders
+$FolderName = "Home"
+$FolderPath = "C:\"
+Invoke-LabCommand -ActivityName "CreateFolder $FolderName" -ComputerName $SRV01 -ScriptBlock {
+    New-Item -Path $FolderPath -Name $FolderName -ItemType Directory
+} -Credential $creds -Variable (Get-Variable -Name FolderPath),(Get-Variable -Name FolderName)
+Remove-Variable -Name FolderName
+Remove-Variable -Name FolderPath
+
+#Copy files
+Write-ScreenInfo -Message 'Copying files to SERVER01' -TaskStart
+Write-ProgressIndicator
+Copy-LabFileItem -Path $LabSources\Labs\UWM\User_Workspace_Manager -ComputerName $SRV01 -DestinationFolderPath C:\PostInstall
+Copy-LabFileItem -Path $LabSources\Labs\UWM\License -ComputerName $SRV01 -DestinationFolderPath C:\PostInstall
+Copy-LabFileItem -Path $LabSources\Labs\UWM\Module3 -ComputerName $SRV01 -DestinationFolderPath C:\PostInstall
+Copy-LabFileItem -Path $LabSources\Labs\UWM\Resources -ComputerName $SRV01 -DestinationFolderPath C:\
+Copy-LabFileItem -Path $LabSources\Labs\UWM\Wallpapers -ComputerName $SRV01 -DestinationFolderPath C:\PostInstall
+Write-ProgressIndicatorEnd
+Write-ScreenInfo -Message 'File copy finished' -TaskEnd
+
+#Create Shares
+$ShareName = "Home"
+$SharePath = "C:\Home"
+Invoke-LabCommand -ActivityName "CreateShare $ShareName" -ComputerName $SRV01 -ScriptBlock {
+    New-SmbShare -Name $ShareName -Path $SharePath -FullAccess "EVERYONE"
+} -Credential $creds -Variable (Get-Variable -Name ShareName),(Get-Variable -Name SharePath)
+
+#Create Shares
+$ShareName = "PostInstall"
+$SharePath = "C:\Postinstall"
+Invoke-LabCommand -ActivityName "CreateShare $ShareName" -ComputerName $SRV01 -ScriptBlock {
+    New-SmbShare -Name $ShareName -Path $SharePath -FullAccess "EVERYONE"
+} -Credential $creds -Variable (Get-Variable -Name ShareName),(Get-Variable -Name SharePath)
+
+#Create Shares
+$ShareName = "Resources"
+$SharePath = "C:\Resources"
+Invoke-LabCommand -ActivityName "CreateShare $ShareName" -ComputerName $SRV01 -ScriptBlock {
+    New-SmbShare -Name $ShareName -Path $SharePath -FullAccess "EVERYONE"
+} -Credential $creds -Variable (Get-Variable -Name ShareName),(Get-Variable -Name SharePath)
+
+#endregion
 
 #Do Not use Lines below!!!
-#Define TestLab
+#region Define TestLab
 New-LabDefinition -Name UWM -DefaultVirtualizationEngine HyperV -VmPath C:\TestLabs\UWM
 
 #Define TestLab Settings
@@ -236,6 +290,7 @@ Set-MpPreference -ExclusionProcess dism.exe,code.exe,powershell.exe
 
 #start building lab
 Install-Lab
+#endregion
 
 #region Actions for DC01
 #Install software
