@@ -350,9 +350,9 @@ Invoke-LabCommand -ActivityName "Remove Office2010 archive" -ComputerName $PC03 
 } -Credential $creds
 
 #Install software
+Install-LabSoftwarePackage -ComputerName $PC03 -Path $labsources\Labs\UWM\SoftwarePackages\FoxitPDFReader1122_enu_Setup.msi -CommandLine /qn
 Install-LabSoftwarePackage -ComputerName $PC03 -Path $labsources\Labs\UWM\SoftwarePackages\GoogleChromeStandaloneEnterprise64.msi -CommandLine /qn
 Install-LabSoftwarePackage -ComputerName $PC03 -Path $labsources\Labs\UWM\SoftwarePackages\FirefoxSetup91.10.0esr.msi -CommandLine /qn
-Install-LabSoftwarePackage -ComputerName $PC03 -Path $labsources\Labs\UWM\SoftwarePackages\FoxitPDFReader1122_enu_Setup.msi -CommandLine /qn
 Write-ScreenInfo -Message 'Installing Office 2010' -TaskStart
 Install-LabSoftwarePackage -ComputerName $PC03 -LocalPath C:\PostInstall\Office2010ProPlusx86ENU\setup.exe
 Write-ScreenInfo -Message 'Installing Office 2010 done'
